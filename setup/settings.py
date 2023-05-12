@@ -14,6 +14,11 @@ from pathlib import Path
 
 import os
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -95,11 +100,11 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pgdatabase',  #your_database_name
-        'USER': 'postgres',       #your_username
-        'PASSWORD': 'admin',   #your_password
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': os.getenv("NAME"),  #your_database_name
+        'USER': os.getenv("USER"),       #your_username
+        'PASSWORD': os.getenv("PASSWORD"),   #your_password
+        'HOST': os.getenv("HOST"),  #your_database_host
+        'PORT': os.getenv("PORT"),  #your_database_port
     }
 }
 

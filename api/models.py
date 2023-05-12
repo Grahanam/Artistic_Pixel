@@ -5,7 +5,7 @@ from django.db import models
 
 class Picture(models.Model):
     title=models.CharField(max_length=200)
-    file=models.ImageField(null=True)
+    file=models.ImageField(null=False,blank=False)
     description=models.TextField()
 
     def __str__(self):
