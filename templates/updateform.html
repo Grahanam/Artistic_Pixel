@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtisticCanvas</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <style>
+        body{
+            margin:0;
+            padding:0;
+        }
+        #preview{
+            width:120px;
+        }
+        .input-container{
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="task-container">
+            <h4>Update:</h4>
+            <div id="form-wrapper">
+                <form id="form">
+                    <div class="row">
+                        <div class="col-md-6 input-container">
+                            <input id="title" class="form-control" type="text" name="title" placeholder="Add Title">
+                        </div>
+                        <div class="col-md-6  input-container">
+                            <input id="file" class="form-control" type="file" name="file" placeholder="Add File">
+                            <h5>Image Preview:</h5>
+                            <img id="preview" alt="preview-img">
+                        </div>
+                        <div class="col-md-6 input-container">
+                            <input id="description" class="form-control" type="text-field" name="description" placeholder="Add Description">
+                        </div>
+                        <div class="col-md-6 input-container">
+                            <input id="submit" class="btn btn-primary" type="submit" placeholder="Update">
+                        </div>
+                    </div>
+                </form>
+                <br><br>
+                <div>
+                    <h4>Delete:</h4>
+                    <button id="delete" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+    }
+    function getpicture(){
+        //extract Id from paramsurl
+        const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+        // Make an AJAX request    
+        $.ajax({
+                url: '/api/viewpicture/'+id, // django api endpoint
+                type: 'GET',
+                success:function(response) {
+                    // Handle the response
+                    // console.log(response);
+                    $('#title').val(response.title);
+                    // $('#file').val(response.file);
+                    $('#description').val(response.description);
+                    $('#preview').empty();
+                    $('#preview').attr("src", response.file)
+                },
+                error: function(xhr, status, error) {
+                    // Handle errors
+                    alert('error:'+error)
+                    // console.error(error);
+                }
+            });
+    }
+    $(document).ready(function() {
+            //function for ajax get request
+            getpicture()
+    });    
+        
+        $(document).ready(function() {  
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            //handle form  
+            $('#form').submit(function(event) {
+                event.preventDefault();
+                // Create a FormData object to store the form data
+                var formData = new FormData(this);
+                var csrfToken = getCookie('csrftoken')
+                $.ajax({
+                    url: '/api/updatepicture/'+id+'/',  // Replace with your Django view URL
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                    },
+                    success: function(response) {
+                        alert('Picture updated successfully!');
+                        getpicture()
+                    },
+                error: function(xhr, textStatus, errorThrown) {
+                    //error alert message
+                    alert('Error Updating picture: ' + errorThrown);
+                }
+            });
+        });
+
+        //delete function
+        $('#delete').click(function() {
+        var csrfToken = getCookie('csrftoken');
+        if (confirm("Are you sure you want to delete this picture?")) {
+            $.ajax({
+                url: '/api/deletepicture/'+ id +'/',//django api endpoint
+                type: 'DELETE',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                },
+                success: function(response) {
+                    //alert message
+                    alert('Picture deleted successfully!');
+                    window.location.href = '/';
+                    //go to homepage
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    //error alert message
+                    alert('Error deleting picture: ' + errorThrown);
+                }
+            });
+        }
+    });
+    });
+
+</script>    
+</body>
+</html>
